@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+  />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Document</title>
+  <style>
+      * {
+          padding: 0;
+          margin: 0;
+      }
+      body {
+          overflow: hidden;
+      }
+      .menu {
+          list-style: none;
+          position: fixed;
+          display: flex;
+          left: 0;
+          bottom: 0;
+          right: 0;
+          justify-content: center;
+          z-index: 9;
+      }
+      .menu li {
+          cursor: pointer;
+          margin: 0 10px;
+          padding: 10px 20px;
+          background: rgba(255, 255, 255, 0.6);
+          &:hover {
+              background: green;
+              color: #fff;
+          }
+      }
+      .main {
+          width: 100vw;
+          height: 100vh;
+          > canvas {
+              object-fit: cover;
+              width: 100%;
+              height: 100%;
+              transform: translateZ(0);
+          }
+      }
+  </style>
+</head>
+<body>
+<ul class="menu">
+  <li>Car1</li>
+  <li>Car2</li>
+  <li>Car3</li>
+  <li>Car4</li>
+  <li>Car5</li>
+  <li>Car6</li>
+</ul>
+<div class="main">
+  <canvas id="canvas"></canvas>
+</div>
+</body>
+</html>
+<script>
+  const carPositionArr = [5.4, 10, 14.8, 19.4, 24.2, 28.8];
+
+  const menuArr = document.querySelectorAll(".menu li");
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const video = createVideo();
+  let currentIndex = 0;
+
+  function animation(duration, from, to, onProgress) {
+    const speed = (to - from) / duration;
+    const startTime = Date.now();
+    let value = from;
+
+    function _run() {
+      const now = Date.now();
+      const time = now - startTime;
+
+      if (time >= duration) {
+        value = to;
+        return onProgress(value);
+      }
+      value = from + speed * time;
+      onProgress(value);
+      requestAnimationFrame(_run);
+    }
+    _run();
+  }
+
+  function createVideo() {
+    const video = document.createElement("video");
+    video.src = "../static/canvas视频轮播.mp4";
+    video.autoplay = false;
+    video.muted = true;
+    video.currentTime = carPositionArr[0];
+    video.preload = "auto";
+
+    return video;
+  }
+  function draw() {
+    canvas.width = video.videoWidth * devicePixelRatio;
+    canvas.height = video.videoHeight * devicePixelRatio;
+
+    console.log("video", video.currentTime);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    requestAnimationFrame(draw);
+  }
+
+  video.addEventListener("loadeddata", draw);
+  menuArr.forEach((menu, index) => {
+    menu.addEventListener("click", () => {
+      currentIndex = index;
+      const currentCarPosition = carPositionArr[index];
+
+      animation(600, video.currentTime, currentCarPosition, (value) => {
+        console.log("value", value);
+        video.currentTime = value;
+      });
+    });
+  });
+</script>
